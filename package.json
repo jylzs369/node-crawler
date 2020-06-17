@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
+    "clean": "cd exports && rm psycology_question.json && rm psycology_answer.json",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
