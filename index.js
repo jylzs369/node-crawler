@@ -19,7 +19,7 @@ const fetchPsycology = function (type, exportDir) {
         if (type === 'question') {
           request.get(url).then(res =>  domAction(type, res.text, target, data[type], resolve)).catch(err => reject(err))
         } else {
-          request.post(url).type('form').send(psycology.params)
+          request.post(url).type('form').send(target.params)
             .then(res => domAction(type, res.text, target, data[type], resolve)).catch(err => reject(err))
         }
       })
