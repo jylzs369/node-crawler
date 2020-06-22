@@ -35,39 +35,55 @@ const fetchPsycology = function (type, exportDir) {
 // 处理DOM
 const domAction = function (type, result, target, data, resolve) {
   const $ = cheerio.load(result)
+  let id = target.id
   let subject = target.subject
   let singles = []
   let multiples = []
   if (type === 'question') {
     const $singles = $('#divCut1').nextUntil('#divCut2')
     const $multiples = $('#divCut2').nextAll('.div_question').slice(0, -1)
-    formatQuestionData($, $singles, singles)
-    formatQuestionData($, $multiples, multiples)
-    data[subject] = { subject, singles, multiples }
+    formatQuestionData($, $singles, singles, 'single')
+    formatQuestionData($, $multiples, multiples, 'multiple')
+    data[subject] = { id, subject, singles, multiples }
   } else {
     const $singles = $('#divAnswer').find('.data__section').eq(0).nextUntil('.data__section')
     const $multiples = $('#divAnswer').find('.data__section').eq(1).nextAll('.data__items').slice(0, -1)
-    formatAnswerData($, $singles, singles)
-    formatAnswerData($, $multiples, multiples)
-    data[subject] = { subject, singles, multiples }
+    formatAnswerData($, $singles, singles, 'single')
+    formatAnswerData($, $multiples, multiples, 'multiple')
+    data[subject] = { id, subject, singles, multiples }
   }
   resolve(true)
 }
 
 // 格式化数据
-function formatQuestionData ($, $el, arr) {
+function formatQuestionData ($, $el, arr, type) {
   $el.each((index, el) => {
     let title = $(el).find('.div_title_question').children()[0].prev.data.replace(/^\d+\.\s?/, '').trim()
     let answers = $(el).find('.ulradiocheck').children('li').map((i, el) => $(el).text()).get()
-    arr[index]= { title, answers }
+    arr[index]= { type, title, answers }
   })
 }
 
-function formatAnswerData ($, $el, arr) {
+function formatAnswerData ($, $el, arr, type) {
   $el.each((index, el) => {
-    let title = $(el).find('.data__tit').children()[0].prev.data.replace(/^\d+\.\s?/, '').trim()
-    let correctAnswer = $(el).find('.data__key').find('img')[0].prev.data.match(/[A-Z]/)[0]
-    arr[index]= { title, correctAnswer }
+    let title = $(el).find('.data__tit').children()[0].prev.data.replace(/^\d+\.\s?/, '').trim();
+    let correctAnswer = type === 'single' ? '' : [];
+    if (type === 'single') {
+      let $imgs = $(el).find('.data__key').find('img');
+      if ($imgs.attr('alt') === '正确') {
+        correctAnswer = $imgs[0].prev.data.match(/[A-Z]/)[0];
+      } else {
+        correctAnswer = $imgs.next().next()[0].next.data.match(/[A-Z]/)[0];
+      }
+    } else {
+      let $imgs = $(el).find('.data__key').find('img');
+      if ($imgs.attr('alt') === '正确') {
+        correctAnswer = $imgs[0].prev.data.match(/[A-Z]/g);
+      } else {
+        correctAnswer = $imgs.next().next()[0].next.data.match(/[A-Z]/g);
+      }
+    }
+    arr[index]= { type, title, correctAnswer }
   })
 }
 
